@@ -58,8 +58,9 @@ Description of the project in details.
 
 <!-- The following are just sample -->
 
-- Authentication & Authorization
-- CRUD Operations for Invetory System
+- Database: Efficient data management with PostgreSQL and MongoDB integration Technology
+- Docker Containerization: Streamlined environment for rapid deployment and testing
+
 
 ### Technology
 
@@ -69,9 +70,6 @@ Description of the project in details.
 ![CSS](https://img.shields.io/badge/CSS-1572B6?style=for-the-badge&logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=white)
 ![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)
-
-#### Framework/Library
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 
 #### Databases
 ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
