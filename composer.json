@@ -1,14 +1,17 @@
 {
-    "name": "your-username-here/project-name-here",
+    "name": "mania/ad-meeting-calendar",
     "type": "project",
     "authors": [
         {
-            "name": "your-username-here",
-            "email": "your-email-here@gmail.com"
+            "name": "Garlynd",
+            "email": "weinard21@gmail.com"
         }
     ],
     "scripts": {
-        "start": "php -S localhost:8000 router.php"
+        "start": "php -S localhost:8000 router.php",
+        "postgresql:reset": "docker compose exec ad-meeting-calendar php utils/dbResetPostgresql.util.php"
     },
-    "require": {}
+    "require": {
+        "vlucas/phpdotenv": "^5.6"
+    }
 }
