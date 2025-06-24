@@ -10,7 +10,7 @@
   <h3 align="center">AD-Meeting-Calendar</h3>
 </div>
 <div align="center">
-  Short Description. (Optional)
+Meeting Calendar with Database
 </div>
 
 <br />
