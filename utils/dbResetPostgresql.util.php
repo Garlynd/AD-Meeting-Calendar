@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+
 require_once 'bootstrap.php';
 
 require VENDOR_PATH . 'autoload.php';
@@ -22,7 +23,7 @@ $schemaFiles = [
 ];
 
 foreach ($schemaFiles as $file) {
-    echo "✅ Applying $file...\n";
+    echo "✅Applying $file...\n";
     $sql = file_get_contents($file);
     if ($sql === false) {
         throw new RuntimeException("❌ Could not read $file");
@@ -30,7 +31,7 @@ foreach ($schemaFiles as $file) {
     $pdo->exec($sql);
 }
 
-echo "✅ Truncating tables…\n";
+echo "✅Truncating tables…\n";
 $tables = ['meeting_users', 'tasks', 'meetings', 'users'];
 foreach ($tables as $table) {
     $pdo->exec("TRUNCATE TABLE {$table} RESTART IDENTITY CASCADE;");
