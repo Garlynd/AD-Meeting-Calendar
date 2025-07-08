@@ -1,24 +1,21 @@
 <?php
 declare(strict_types=1);
 
-
 require_once 'bootstrap.php';
-
 require VENDOR_PATH . 'autoload.php';
-
 require_once UTILS_PATH . 'envSetter.util.php';
 
-// Load dummy data
-$users = require_once DUMMIES_PATH . '/users.staticData.php';
+if (!defined('DUMMIES_PATH')) {
+    define('DUMMIES_PATH', __DIR__ . '/../staticData/dummies');
+}
 
-// Connect to PostgreSQL
 $dsn = "pgsql:host={$pgConfig['host']};port={$pgConfig['port']};dbname={$pgConfig['db']}";
 $pdo = new PDO($dsn, $pgConfig['user'], $pgConfig['pass'], [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 ]);
 
-// Apply schema files
-echo "Working on schema\n";
+echo "Checking connection… OK\n";
+
 $schemaFiles = [
     'database/users.model.sql',
     'database/meetings.model.sql',
@@ -26,8 +23,9 @@ $schemaFiles = [
     'database/tasks.model.sql'
 ];
 
+echo "Applying schema files...\n";
 foreach ($schemaFiles as $file) {
-    echo "✅Applying $file...\n";
+    echo "✅ Applying $file...\n";
     $sql = file_get_contents($file);
     if ($sql === false) {
         throw new RuntimeException("❌ Could not read $file");
@@ -35,28 +33,35 @@ foreach ($schemaFiles as $file) {
     $pdo->exec($sql);
 }
 
-// Truncate tables before seeding
-echo "✅Truncating tables…\n";
+echo "✅ Truncating tables…\n";
 $tables = ['meeting_users', 'tasks', 'meetings', 'users'];
 foreach ($tables as $table) {
     $pdo->exec("TRUNCATE TABLE {$table} RESTART IDENTITY CASCADE;");
 }
 
-// Seeding users
+// Load users dummy data
+$users = require_once DUMMIES_PATH . '/users.staticData.php';
+
 echo "Seeding users…\n";
+
 $stmt = $pdo->prepare("
-    INSERT INTO users (username, role, full_name, password)
-    VALUES (:username, :role, :full_name, :pw)
+    INSERT INTO users (username, password, full_name, group_name, role)
+    VALUES (:username, :pw, :full_name, :group_name, :role)
 ");
 
 foreach ($users as $u) {
-    $full_name = $u['first_name'] . ' ' . $u['last_name'];
+    // Compose full_name from first_name and last_name if available in dummy data
+    $fullName = $u['first_name'] . ' ' . $u['last_name'];
+    // group_name can be optional or null if not present in dummy data
+    $groupName = $u['group_name'] ?? null;
+
     $stmt->execute([
         ':username' => $u['username'],
-        ':role' => $u['role'],
-        ':full_name' => $full_name,
         ':pw' => password_hash($u['password'], PASSWORD_DEFAULT),
+        ':full_name' => $fullName,
+        ':group_name' => $groupName,
+        ':role' => $u['role'],
     ]);
 }
 
-echo "✅ PostgreSQL seeding complete!\n";
+echo "✅ Seeding complete!\n";
