@@ -59,4 +59,42 @@ class Auth
         }
         session_destroy();
     }
+
+    // Handler for login: expects $_POST['username'] and $_POST['password']
+    public static function handleLogin(PDO $pdo): array
+    {
+        self::init();
+        $username = $_POST['username'] ?? '';
+        $password = $_POST['password'] ?? '';
+
+        if (empty($username) || empty($password)) {
+            return [
+                'success' => false,
+                'message' => 'Username and password are required.'
+            ];
+        }
+
+        if (self::login($pdo, $username, $password)) {
+            return [
+                'success' => true,
+                'message' => 'Login successful.',
+                'user' => self::user()
+            ];
+        } else {
+            return [
+                'success' => false,
+                'message' => 'Invalid username or password.'
+            ];
+        }
+    }
+
+    // Handler for logout
+    public static function handleLogout(): array
+    {
+        self::logout();
+        return [
+            'success' => true,
+            'message' => 'Logout successful.'
+        ];
+    }
 }
