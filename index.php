@@ -1,90 +1,57 @@
 <?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-?>
+require_once 'bootstrap.php';
+require_once UTILS_PATH . 'auth.util.php';
+Auth::init();
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Check if user is already logged in
+if (Auth::check()) {
+    header('Location: /pages/Home/index.php');
+    exit;
+}
+
+$error = trim((string) ($_GET['error'] ?? ''));
+$error = str_replace("%", " ", $error);
+
+// Set up layout variables for login page
+$title = 'Login - Meeting Calendar';
+
+// Content for the login form
+ob_start();
+?>
+<div class="login-container">
+    <form action="/handlers/auth.handler.php" method="POST">
+        <label for="username" class="label">Username</label>
+        <input id="username" name="username" type="text" required class="input">
+
+        <label for="password" class="label">Password</label>
+        <input id="password" name="password" type="password" required class="input">
+
+        <input type="hidden" name="action" value="login">
+        <button type="submit" class="button">Log In</button>
+
+        <?php if (!empty($error)): ?>
+        <div class="error"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
+    </form>
+</div>
+<?php
+$content = ob_get_clean();
+
+// For login page, we'll use a simple layout without navbar
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>System Status | AD-Meeting-Calendar</title>
-  <link rel="stylesheet" href="/assets/css/status.css">
-  <style>
-    .header {
-      background-color: #007bff;
-      color: white;
-      padding: 20px;
-      font-size: 24px;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    .container {
-      max-width: 800px;
-      margin: 40px auto;
-      padding: 20px;
-      background-color: #f9f9f9;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .status-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
-      margin-top: 20px;
-    }
-
-    .status-card {
-      flex: 1;
-      background-color: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-
-    .btn {
-      display: inline-block;
-      padding: 12px 24px;
-      background-color: #007bff;
-      color: white;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 16px;
-      margin-top: 30px;
-    }
-
-    .btn:hover {
-      background-color: #0056b3;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= $title ?></title>
+    <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
-
-  <div class="header">
-    AD Meeting Calendar
-  </div>
-
-  <div class="container">
-    <h2>✅ System Status Check</h2>
-    <p>Below are the results of your database connection checks:</p>
-
-    <!-- ✅ Flex container for connection cards -->
-    <div class="status-row">
-      <div class="status-card">
-        <?php include_once "handlers/mongodbChecker.handler.php"; ?>
-      </div>
-      <div class="status-card">
-        <?php include_once "handlers/postgreChecker.handler.php"; ?>
-      </div>
-    </div>
-
-    <div style="text-align: center;">
-      <a href="/pages/login/index.php" class="btn">Go to Login Page</a>
-    </div>
-  </div>
-
+    <?= $content ?>
 </body>
 </html>
