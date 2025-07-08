@@ -1,16 +1,12 @@
-CREATE TABLE IF NOT EXISTS meeting (
-    id INT NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    create_time DATE DEFAULT CURRENT_DATE,
-    title VARCHAR(100) NOT NULL,
-    description TEXT,
-    date TIMESTAMP NOT NULL,
-    location VARCHAR(100),
-    created_by INT REFERENCES users(id)
-);
+DROP TABLE IF EXISTS meetings CASCADE;
 
-COMMENT ON TABLE meeting IS 'Table storing meeting details';
-COMMENT ON COLUMN meeting.title IS 'Meeting title';
-COMMENT ON COLUMN meeting.description IS 'Details about the meeting';
-COMMENT ON COLUMN meeting.date IS 'Scheduled date and time';
-COMMENT ON COLUMN meeting.location IS 'Physical or virtual location';
-COMMENT ON COLUMN meeting.created_by IS 'User who created the meeting';
+CREATE TABLE meetings (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    schedule TIMESTAMP NOT NULL,
+    location VARCHAR(255),
+    created_by INTEGER NOT NULL REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

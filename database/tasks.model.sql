@@ -1,18 +1,11 @@
 CREATE TABLE IF NOT EXISTS tasks (
-    id INT NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    create_time DATE DEFAULT CURRENT_DATE,
-    title VARCHAR(100) NOT NULL,
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    meeting_id INTEGER NOT NULL REFERENCES meetings(id),
+    assigned_to INTEGER REFERENCES users(id),
+    title VARCHAR(255) NOT NULL,
     description TEXT,
-    assigned_to INT REFERENCES users(id),
-    meeting_id INT REFERENCES meeting(id),
+    status VARCHAR(50) DEFAULT 'pending',
     due_date DATE,
-    status VARCHAR(50) DEFAULT 'Pending'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-COMMENT ON TABLE tasks IS 'Task assignments related to meetings and users';
-COMMENT ON COLUMN tasks.title IS 'Task title';
-COMMENT ON COLUMN tasks.description IS 'Detailed description of the task';
-COMMENT ON COLUMN tasks.assigned_to IS 'User assigned to the task';
-COMMENT ON COLUMN tasks.meeting_id IS 'Related meeting';
-COMMENT ON COLUMN tasks.due_date IS 'Task deadline';
-COMMENT ON COLUMN tasks.status IS 'Current status of the task';
