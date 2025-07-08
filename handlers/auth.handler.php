@@ -7,7 +7,8 @@ require_once UTILS_PATH . 'envSetter.util.php';
 
 Auth::init();
 
-$host = 'host.docker.internal';
+// Updated to match the docker-compose service name
+$host = 'postgresql';  // <-- Changed from 'host.docker.internal'
 $port = $pgConfig['port'];
 $user = $pgConfig['user'];
 $pass = $pgConfig['pass'];
@@ -34,9 +35,7 @@ if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: /errors/invalidCredentials.error.php');
         exit;
     }
-}
-
-elseif ($action === 'logout') {
+} elseif ($action === 'logout') {
     Auth::init();
     Auth::logout();
     header('Location: /index.php');
