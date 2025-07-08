@@ -31,10 +31,4 @@ foreach ($schemaFiles as $file) {
     $pdo->exec($sql);
 }
 
-echo "✅Truncating tables…\n";
-$tables = ['meeting_users', 'tasks', 'meetings', 'users'];
-foreach ($tables as $table) {
-    $pdo->exec("TRUNCATE TABLE {$table} RESTART IDENTITY CASCADE;");
-}
-
-echo "✅ Database reset and schema applied successfully.\n";
+echo "✅ Database schema reset successfully.\n";
