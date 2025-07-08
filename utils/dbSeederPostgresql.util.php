@@ -1,54 +1,101 @@
 <?php
-declare(strict_types=1);
+require_once 'vendor/autoload.php';
+require_once 'bootstrap.php';
+require_once UTILS_PATH . '/envSetter.util.php';
 
-// 1. Load environment and dependencies
-require 'bootstrap.php';
-require_once VENDOR_PATH . 'autoload.php';
-require_once UTILS_PATH . 'envSetter.util.php';
+$users = require_once DUMMIES_PATH . '/users.staticData.php';
+$meetings = require_once DUMMIES_PATH . '/meetings.staticData.php';
+$meetingUsers = require_once DUMMIES_PATH . '/meeting_users.staticData.php';
+$tasks = require_once DUMMIES_PATH . '/tasks.staticData.php';
 
-// 2. Connect to PostgreSQL
-$dsn = "pgsql:host={$pgConfig['host']};port={$pgConfig['port']};dbname={$pgConfig['dbname']}";
-$pdo = new PDO($dsn, $pgConfig['user'], $pgConfig['pass'], [
+$host = $pgConfig['host'];
+$port = $pgConfig['port'];
+$user = $pgConfig['user'];
+$pass = $pgConfig['pass'];
+$db = $pgConfig['db'];
+
+$dsn = "pgsql:host={$host};port={$port};dbname={$db}";
+$pdo = new PDO($dsn, $user, $pass, [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 ]);
 
-// 3. Load users from static data
-$users = require_once DUMMIES_PATH . 'users.staticData.php';
-if (!$users || !is_array($users)) {
-    // Log error instead of printing directly
-    error_log("❌ No users loaded from staticData.");
-    return;
+echo "Truncating tables...\n";
+foreach (['tasks', 'meeting_users', 'meetings', 'users'] as $table) {
+    $pdo->exec("TRUNCATE TABLE {$table} RESTART IDENTITY CASCADE;");
 }
 
-try {
-    // 4. Start a transaction
-    $pdo->beginTransaction();
+$stmt = $pdo->prepare(
+    'INSERT INTO users (username, role, first_name, last_name, password)
+     VALUES (:username, :role, :fn, :ln, :pw)'
+);
 
-    // 5. Clear the users table
-    $pdo->exec('TRUNCATE TABLE public."users" RESTART IDENTITY CASCADE');
-
-    // 6. Prepare insert statement
-    $stmt = $pdo->prepare("
-        INSERT INTO public.\"users\" (username, role, first_name, last_name, password)
-        VALUES (:username, :role, :fn, :ln, :pw)
-    ");
-
-    // 7. Insert each user
-    foreach ($users as $u) {
-        $stmt->execute([
-            ':username' => $u['username'],
-            ':role' => $u['role'],
-            ':fn' => $u['first_name'],
-            ':ln' => $u['last_name'],
-            ':pw' => password_hash($u['password'], PASSWORD_DEFAULT),
-        ]);
-    }
-
-    // 8. Commit the transaction
-    $pdo->commit();
-    $GLOBALS['seederStatus'] = "✅ PostgreSQL seeding complete!";
-
-} catch (PDOException $e) {
-    $pdo->rollBack(); // Rollback on error
-    error_log("❌ DB Error during seeding: " . $e->getMessage());
+foreach ($users as $u) {
+    $stmt->execute([
+        ':username' => $u['username'],
+        ':role'     => $u['role'],
+        ':fn'       => $u['first_name'],
+        ':ln'       => $u['last_name'],
+        ':pw'       => password_hash($u['password'], PASSWORD_DEFAULT),
+    ]);
 }
+
+echo "✅ Users seeded successfully!\n";
+
+// Seed meetings
+$meetingsStmt = $pdo->prepare(
+    'INSERT INTO meetings (title, description, schedule, location, created_by, created_at, updated_at)
+     VALUES (:title, :description, :schedule, :location, :created_by, :created_at, :updated_at)'
+);
+
+foreach ($meetings as $m) {
+    $meetingsStmt->execute([
+        ':title' => $m['title'],
+        ':description' => $m['description'],
+        ':schedule' => $m['schedule'],
+        ':location' => $m['location'],
+        ':created_by' => $m['created_by'],
+        ':created_at' => $m['created_at'],
+        ':updated_at' => $m['updated_at'],
+    ]);
+}
+
+echo "✅ Meetings seeded successfully!\n";
+
+// Seed meeting_users
+$meetingUsersStmt = $pdo->prepare(
+    'INSERT INTO meeting_users (meeting_id, user_id, role)
+     VALUES (:meeting_id, :user_id, :role)'
+);
+
+foreach ($meetingUsers as $mu) {
+    $meetingUsersStmt->execute([
+        ':meeting_id' => $mu['meeting_id'],
+        ':user_id' => $mu['user_id'],
+        ':role' => $mu['role'],
+    ]);
+}
+
+echo "✅ Meeting users seeded successfully!\n";
+
+// Seed tasks
+$tasksStmt = $pdo->prepare(
+    'INSERT INTO tasks (meeting_id, assigned_to, title, description, status, due_date, created_at, updated_at)
+     VALUES (:meeting_id, :assigned_to, :title, :description, :status, :due_date, :created_at, :updated_at)'
+);
+
+foreach ($tasks as $t) {
+    $tasksStmt->execute([
+        ':meeting_id' => $t['meeting_id'],
+        ':assigned_to' => $t['assigned_to'],
+        ':title' => $t['title'],
+        ':description' => $t['description'],
+        ':status' => $t['status'],
+        ':due_date' => $t['due_date'],
+        ':created_at' => $t['created_at'],
+        ':updated_at' => $t['updated_at'],
+    ]);
+}
+
+echo "✅ Tasks seeded successfully!\n";
+
+echo "✔️ PostgreSQL seeding complete!\n";
