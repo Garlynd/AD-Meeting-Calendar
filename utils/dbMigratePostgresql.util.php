@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 require_once 'bootstrap.php';
 
-require VENDOR_PATH . 'autoload.php';
+require_once rtrim(VENDOR_PATH, '/') . '/autoload.php';
 
-require_once UTILS_PATH . 'envSetter.util.php';
+require_once rtrim(UTILS_PATH, '/') . '/envSetter.util.php';
+
 
 
 $dsn = "pgsql:host={$pgConfig['host']};port={$pgConfig['port']};dbname={$pgConfig['db']}";
