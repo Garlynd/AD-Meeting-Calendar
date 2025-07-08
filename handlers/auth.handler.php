@@ -1,25 +1,44 @@
 <?php
-require_once '../utils/envSetter.util.php';
-require_once '../utils/auth.util.php';
+declare(strict_types=1);
+require_once BASE_PATH . '/bootstrap.php';
+require_once VENDOR_PATH . 'autoload.php';
+require_once UTILS_PATH . 'auth.util.php';
+require_once UTILS_PATH . 'envSetter.util.php';
 
-$username = $_POST['username'] ?? '';
-$password = $_POST['password'] ?? '';
+Auth::init();
 
-// Connect to PostgreSQL
-try {
-    $dsn = "pgsql:host={$pgConfig['host']};port={$pgConfig['port']};dbname={$pgConfig['db']}";
-    $pdo = new PDO($dsn, $pgConfig['user'], $pgConfig['pass'], [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    ]);
-} catch (PDOException $e) {
-    die("DB connection failed: " . $e->getMessage());
+$host = 'host.docker.internal';
+$port = $pgConfig['port'];
+$user = $pgConfig['user'];
+$pass = $pgConfig['pass'];
+$db = $pgConfig['db'];
+
+$dsn = "pgsql:host={$host};port={$port};dbname={$db}";
+$pdo = new PDO($dsn, $user, $pass, [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+]);
+
+$action = $_REQUEST['action'] ?? null;
+
+if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $usernameInput = trim($_POST['username'] ?? '');
+    $passwordInput = trim($_POST['password'] ?? '');
+    
+    if (Auth::login($pdo, $usernameInput, $passwordInput)) {
+        $user = Auth::user();
+        error_log("[auth.handler.php] Login successful for user_id={$user['id']}");
+        header('Location: /pages/Home/index.php'); // Redirect to home page
+        exit;
+    } else {
+        error_log("[auth.handler.php] Login failed for username='{$usernameInput}'");
+        header('Location: /errors/invalidCredentials.error.php');
+        exit;
+    }
 }
 
-// Use utility function to login
-if (Auth::login($pdo, $username, $password)) {
-    header("Location: /dashboard/index.php");
-    exit;
-} else {
-    header("Location: /pages/login/index.php?error=invalid");
+elseif ($action === 'logout') {
+    Auth::init();
+    Auth::logout();
+    header('Location: /index.php');
     exit;
 }
