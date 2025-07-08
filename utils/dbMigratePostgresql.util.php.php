@@ -14,7 +14,20 @@ $pdo = new PDO($dsn, $pgConfig['user'], $pgConfig['pass'], [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 ]);
 
-echo "Working on schema\n";
+// Drop old tables
+echo "Dropping old tables…\n";
+foreach ([
+    'meeting_users',
+    'tasks',
+    'meetings',
+    'users',
+    'projects'
+] as $table) {
+    // Use IF EXISTS so it won’t error if the table is already gone
+    $pdo->exec("DROP TABLE IF EXISTS {$table} CASCADE;");
+}
+
+// Apply schema files
 $schemaFiles = [
     'database/users.model.sql',
     'database/meetings.model.sql',
@@ -23,18 +36,14 @@ $schemaFiles = [
 ];
 
 foreach ($schemaFiles as $file) {
-    echo "✅Applying $file...\n";
+    echo "Applying schema from $file…\n";
     $sql = file_get_contents($file);
     if ($sql === false) {
-        throw new RuntimeException("❌ Could not read $file");
+        throw new RuntimeException("Could not read $file");
+    } else {
+        echo "Creation Success from $file\n";
     }
     $pdo->exec($sql);
 }
 
-echo "✅Truncating tables…\n";
-$tables = ['meeting_users', 'tasks', 'meetings', 'users'];
-foreach ($tables as $table) {
-    $pdo->exec("TRUNCATE TABLE {$table} RESTART IDENTITY CASCADE;");
-}
-
-echo "✅ Database reset and schema applied successfully.\n";
+echo "✅ Database migration complete!\n";
