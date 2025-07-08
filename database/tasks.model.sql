@@ -1,9 +1,18 @@
 CREATE TABLE IF NOT EXISTS tasks (
-    id uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
-    project_id uuid NOT NULL REFERENCES projects (id) ON DELETE CASCADE,
-    assigned_to uuid REFERENCES users (id) ON DELETE SET NULL,
-    title varchar(255) NOT NULL,
-    description text,
-    status varchar(50) DEFAULT 'pending',
-    due_date date
+    id INT NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    create_time DATE DEFAULT CURRENT_DATE,
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    assigned_to INT REFERENCES users(id),
+    meeting_id INT REFERENCES meeting(id),
+    due_date DATE,
+    status VARCHAR(50) DEFAULT 'Pending'
 );
+
+COMMENT ON TABLE tasks IS 'Task assignments related to meetings and users';
+COMMENT ON COLUMN tasks.title IS 'Task title';
+COMMENT ON COLUMN tasks.description IS 'Detailed description of the task';
+COMMENT ON COLUMN tasks.assigned_to IS 'User assigned to the task';
+COMMENT ON COLUMN tasks.meeting_id IS 'Related meeting';
+COMMENT ON COLUMN tasks.due_date IS 'Task deadline';
+COMMENT ON COLUMN tasks.status IS 'Current status of the task';
